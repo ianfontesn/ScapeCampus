@@ -10,6 +10,7 @@ public class LogicDoorPuzzle : BasePuzzle
     [SerializeField] private Image _imageBackground;
     [SerializeField] private GameObject toggleInformativo;
     [SerializeField] private GameObject winObjects;
+    [SerializeField] private GameObject targets;
 
 
     private readonly Dictionary<string, string> validPositions = new()
@@ -65,7 +66,8 @@ public class LogicDoorPuzzle : BasePuzzle
         }
 
         toggleInformativo.SetActive(false);
-        yield return new WaitForSeconds(2f);
+        yield return new WaitForSeconds(3f);
+        targets.SetActive(false);
 
 
         float duration = 2.0f; 
@@ -89,5 +91,9 @@ public class LogicDoorPuzzle : BasePuzzle
         winObjects.SetActive(true);
     }
 
+    public void ReloadAll()
+    {
+        TryLoadSceneAsync(0);
+    }
 }
 

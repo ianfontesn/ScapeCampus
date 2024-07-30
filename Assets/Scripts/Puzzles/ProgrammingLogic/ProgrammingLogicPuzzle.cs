@@ -110,7 +110,6 @@ public class ProgrammingLogicPuzzle : BasePuzzle
         toggleGroupAnswers.gameObject.SetActive(true);
     }
 
-
     public void CheckCorrectAnswers()
     {
         for (int i = 0; i < toggleGroupAnswers.childCount; i++)
@@ -121,7 +120,7 @@ public class ProgrammingLogicPuzzle : BasePuzzle
             {
                 if (i == indexAnswer)
                 {
-                    PlayerPrefs.SetInt("ProgrammingLogicPuzzle", 1);
+                    SetPlayerPrefValue("ProgrammingLogicPuzzle", 1);
                     ChangeText(2);
                 }
                 else
@@ -135,7 +134,7 @@ public class ProgrammingLogicPuzzle : BasePuzzle
 
     public void ChangeScene()
     {
-        if (!LoadSceneAsync(1) && !waitCoroutine)
+        if (!TryLoadSceneAsync(1) && !waitCoroutine)
         {
             waitCoroutine = true;
             StartCoroutine(ShowIncompleteScene());

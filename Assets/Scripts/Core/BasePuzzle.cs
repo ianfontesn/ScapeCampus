@@ -17,11 +17,12 @@ public abstract class BasePuzzle : MonoBehaviour
 
     protected virtual int GetPlayerPrefValue(string key)
     {
-
         return PlayerPrefs.GetInt(key);
     }
 
-    protected virtual bool LoadSceneAsync(int buildIndex)
+
+    //verifica se a cena anterior já foi concluida e carrega a cena async
+    protected virtual bool TryLoadSceneAsync(int buildIndex)
     {
         bool loaded = false;
 
@@ -53,5 +54,9 @@ public abstract class BasePuzzle : MonoBehaviour
     }
 
 
-    
+    public void ExitApp()
+    {
+        ResetPlayerPrefs();
+        Application.Quit();
+    }
 }

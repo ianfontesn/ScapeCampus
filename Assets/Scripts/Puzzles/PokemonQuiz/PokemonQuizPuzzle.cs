@@ -1,4 +1,3 @@
-using JetBrains.Annotations;
 using System.Collections;
 using System.Collections.Generic;
 using TMPro;
@@ -10,15 +9,20 @@ public class PokemonQuizPuzzle : BasePuzzle
 {
     [SerializeField] private Questions questions;
     [SerializeField] private TMP_Text tmpPergunta;
+    [SerializeField] private GameObject answerGroup;
     [SerializeField] private Toggle[] toggleRepostas;
     [SerializeField] private List<RawImage> pokebolasPlayer;
     [SerializeField] private List<RawImage> pokebolasBot;
-    [SerializeField] private GameObject detailsAfterLoose;
+    [SerializeField] private GameObject detailsAfterLose;
+    [SerializeField] private GameObject canvaDetails;
+    [SerializeField] private GameObject canvaPrincipal;
+    [SerializeField] private GameObject tmpCenaIncompleta;
 
 
     private int currentQuestion = 0;
     private int correctAnswer = 0;
     private int countToLose = 3;
+    private bool waitCoroutine = false;
     private Dictionary<int, bool> questionsUsed = new();
     private Dictionary<int, bool> answerList = new();
 
@@ -38,30 +42,34 @@ public class PokemonQuizPuzzle : BasePuzzle
 
     private void SetNewQuestion()
     {
-        if (!questionsUsed.ContainsValue(false))
+        if (GetPlayerPrefValue("PokemonQuizPuzzle") != 1)
         {
-            ReloadScene();
-        }
-        else
-        {
-            var questionIndex = Random.Range(0, questions.GetAllQuestions().Length);
-
-            if (questionsUsed.ContainsKey(questionIndex) && questionsUsed[questionIndex] == false)
+            if (!questionsUsed.ContainsValue(false))
             {
-                tmpPergunta.text = questions.GetQuestion(questionIndex);
-
-                var answers = questions.GetAnswer(questionIndex);
-                for (int i = 0; i < toggleRepostas.Length; i++)
-                {
-                    toggleRepostas[i].GetComponentInChildren<Text>().text = answers[i];
-                }
-
-                correctAnswer = questions.GetCurrentCorrectAnswer(questionIndex);
-                questionsUsed[questionIndex] = true;
+                ReloadScene();
             }
             else
             {
-                SetNewQuestion();
+                var questionIndex = Random.Range(0, questions.GetAllQuestions().Length);
+
+                if (questionsUsed.ContainsKey(questionIndex) && questionsUsed[questionIndex] == false)
+                {
+                    tmpPergunta.text = questions.GetQuestion(questionIndex);
+
+                    var answers = questions.GetAnswer(questionIndex);
+                    for (int i = 0; i < toggleRepostas.Length; i++)
+                    {
+                        toggleRepostas[i].isOn = false;
+                        toggleRepostas[i].GetComponentInChildren<Text>().text = answers[i];
+                    }
+
+                    correctAnswer = questions.GetCurrentCorrectAnswer(questionIndex);
+                    questionsUsed[questionIndex] = true;
+                }
+                else
+                {
+                    SetNewQuestion();
+                }
             }
         }
     }
@@ -70,7 +78,7 @@ public class PokemonQuizPuzzle : BasePuzzle
     {
         for (int i = 0; i < toggleRepostas.Length; i++)
         {
-            if (toggleRepostas[i].isOn) 
+            if (toggleRepostas[i].isOn)
             {
                 if (correctAnswer == i)
                 {
@@ -90,7 +98,7 @@ public class PokemonQuizPuzzle : BasePuzzle
 
     private void RemoveLifeFromPlayer()
     {
-        if(pokebolasPlayer.Count > 0)
+        if (pokebolasPlayer.Count > 0)
         {
             pokebolasPlayer[pokebolasPlayer.Count - 1].enabled = false;
             pokebolasPlayer.RemoveAt(pokebolasPlayer.Count - 1);
@@ -108,7 +116,7 @@ public class PokemonQuizPuzzle : BasePuzzle
 
         }
 
-        VerifyWinner() ;
+        VerifyWinner();
     }
 
     private void VerifyWinner()
@@ -117,31 +125,47 @@ public class PokemonQuizPuzzle : BasePuzzle
         {
             //player win
             SetPlayerPrefValue("PokemonQuizPuzzle", 1);
-            
+            ShowDetailsAfterWin();
+
         }
         else if (pokebolasPlayer.Count < countToLose)
         {
-            StartCoroutine(ReloadScene());
+            ShowDetailsAfterLose();
         }
-    }
-
-    private IEnumerator ReloadScene()
-    {
-        ShowDetailsAfterLose();
-
-        yield return new WaitForSeconds(3f);
-        
-        LoadSceneAsync(SceneManager.GetActiveScene().buildIndex);
     }
 
     private void ShowDetailsAfterLose()
     {
+        canvaPrincipal.SetActive(false);
+        canvaDetails.SetActive(true);
+        detailsAfterLose.SetActive(true);
+    }
 
+    public void ShowDetailsAfterWin()
+    {
+        answerGroup.SetActive(false);
+        tmpPergunta.text = "Você é um grande guerreiro! Avance para a próxima cena!";
+    }
+
+    public void ReloadScene()
+    {
+        TryLoadSceneAsync(SceneManager.GetActiveScene().buildIndex);
     }
 
     public void LoadNextScene()
     {
-        LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1);
+        if (!TryLoadSceneAsync(2) && !waitCoroutine)
+        {
+            waitCoroutine = true;
+            StartCoroutine(ShowIncompleteScene());
+        }
     }
 
+    private IEnumerator ShowIncompleteScene()
+    {
+        tmpCenaIncompleta.SetActive(true);
+        yield return new WaitForSeconds(2);
+        tmpCenaIncompleta.SetActive(false);
+        waitCoroutine = false;
+    }
 }
