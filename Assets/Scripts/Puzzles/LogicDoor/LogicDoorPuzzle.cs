@@ -2,9 +2,16 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
+using UnityEngine.UI;
 
 public class LogicDoorPuzzle : BasePuzzle
 {
+    [SerializeField] private Animator _keyAnimator;
+    [SerializeField] private Image _imageBackground;
+    [SerializeField] private GameObject toggleInformativo;
+    [SerializeField] private GameObject winObjects;
+
+
     private readonly Dictionary<string, string> validPositions = new()
     {
         { "1", "and" },
@@ -18,14 +25,11 @@ public class LogicDoorPuzzle : BasePuzzle
 
     public void OnTriggerEnterEvent(string tagWhoTriggered, string tagWhoWasTriggered)
     {
-        Debug.Log("trigger enter " + "tagWhoTriggered: " + tagWhoTriggered + " tagWhoWasTriggered: " + tagWhoWasTriggered);
         UpdateSolutionStatus(tagWhoTriggered, tagWhoWasTriggered, true);
     }
 
     public void OnTriggerExitEvent(string tagWhoTriggered, string tagWhoWasTriggered)
     {
-        Debug.Log("trigger exit" + "tagWhoTriggered: " + tagWhoTriggered + " tagWhoWasTriggered: " + tagWhoWasTriggered);
-
         UpdateSolutionStatus(tagWhoTriggered, tagWhoWasTriggered, false);
     }
 
@@ -41,13 +45,6 @@ public class LogicDoorPuzzle : BasePuzzle
                 solution[pos -1] = isOnPosition;
             }
 
-            string debugstring = "";
-            foreach(var s in solution)
-            {
-               debugstring += (s + " | ");
-            }
-            Debug.Log(debugstring);
-
             CheckSolution();
         }
     }
@@ -56,7 +53,41 @@ public class LogicDoorPuzzle : BasePuzzle
     {
         if (!solution.Contains(false))
         {
-            Debug.Log("SOLUÇÃO COMPLETA.");
+            StartCoroutine(ActiveWinSequence());
         }
     }
+
+    private IEnumerator ActiveWinSequence()
+    {
+        if (_keyAnimator.gameObject.activeSelf)
+        {
+            _keyAnimator.SetTrigger("win");
+        }
+
+        toggleInformativo.SetActive(false);
+        yield return new WaitForSeconds(2f);
+
+
+        float duration = 2.0f; 
+        float elapsed = 0.0f;
+
+        Color color = _imageBackground.color;
+        color.a = 0;
+        _imageBackground.color = color;
+        
+
+        while (elapsed < duration)
+        {
+            elapsed += Time.deltaTime;
+            color.a = Mathf.Clamp01(elapsed / duration);
+            _imageBackground.color = color;
+            yield return null;
+        }
+
+        color.a = 1;
+        _imageBackground.color = color;
+        winObjects.SetActive(true);
+    }
+
 }
+

@@ -1,7 +1,9 @@
 using JetBrains.Annotations;
+using System.Collections;
 using System.Collections.Generic;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class PokemonQuizPuzzle : BasePuzzle
@@ -11,10 +13,12 @@ public class PokemonQuizPuzzle : BasePuzzle
     [SerializeField] private Toggle[] toggleRepostas;
     [SerializeField] private List<RawImage> pokebolasPlayer;
     [SerializeField] private List<RawImage> pokebolasBot;
+    [SerializeField] private GameObject detailsAfterLoose;
 
 
     private int currentQuestion = 0;
     private int correctAnswer = 0;
+    private int countToLose = 3;
     private Dictionary<int, bool> questionsUsed = new();
     private Dictionary<int, bool> answerList = new();
 
@@ -70,12 +74,10 @@ public class PokemonQuizPuzzle : BasePuzzle
             {
                 if (correctAnswer == i)
                 {
-                    Debug.Log("Resposta Correta");
                     RemoveLifeFromBot();
                 }
                 else
                 {
-                    Debug.Log("Resposta Errada");
                     RemoveLifeFromPlayer();
                 }
 
@@ -84,7 +86,6 @@ public class PokemonQuizPuzzle : BasePuzzle
         }
 
         SetNewQuestion();
-
     }
 
     private void RemoveLifeFromPlayer()
@@ -112,26 +113,35 @@ public class PokemonQuizPuzzle : BasePuzzle
 
     private void VerifyWinner()
     {
-        if (pokebolasBot.Count == 0)
+        if (pokebolasBot.Count < countToLose)
         {
-            Debug.Log("BOT WIN");
-            ReloadScene();
+            //player win
+            SetPlayerPrefValue("PokemonQuizPuzzle", 1);
             
         }
-        else if (pokebolasPlayer.Count == 0)
+        else if (pokebolasPlayer.Count < countToLose)
         {
-            Debug.Log("PLAYER WIN");
-            SetPlayerPrefValue("PokemonQuizPuzzle", 1);
+            StartCoroutine(ReloadScene());
         }
     }
 
-    private void ReloadScene()
+    private IEnumerator ReloadScene()
     {
-        LoadSceneAsync(1);
+        ShowDetailsAfterLose();
+
+        yield return new WaitForSeconds(3f);
+        
+        LoadSceneAsync(SceneManager.GetActiveScene().buildIndex);
     }
 
-    public void ChangeScene()
+    private void ShowDetailsAfterLose()
     {
-        LoadSceneAsync(2);
+
     }
+
+    public void LoadNextScene()
+    {
+        LoadSceneAsync(SceneManager.GetActiveScene().buildIndex + 1);
+    }
+
 }
