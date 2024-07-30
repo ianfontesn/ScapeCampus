@@ -16,6 +16,7 @@ public class PokemonQuizPuzzle : BasePuzzle
     [SerializeField] private GameObject detailsAfterLose;
     [SerializeField] private GameObject canvaDetails;
     [SerializeField] private GameObject canvaPrincipal;
+    [SerializeField] private GameObject canvaBloqueio;
     [SerializeField] private GameObject tmpCenaIncompleta;
 
 
@@ -23,6 +24,8 @@ public class PokemonQuizPuzzle : BasePuzzle
     private int correctAnswer = 0;
     private int countToLose = 3;
     private bool waitCoroutine = false;
+    private bool isFirstFound = false;
+    private bool isSecondFound = false;
     private Dictionary<int, bool> questionsUsed = new();
     private Dictionary<int, bool> answerList = new();
 
@@ -30,6 +33,18 @@ public class PokemonQuizPuzzle : BasePuzzle
     {
         FillDictionaryQuestions();
         SetNewQuestion();
+    }
+
+    private void Update()
+    {
+        if (!isFirstFound || !isSecondFound)
+        {
+            canvaBloqueio.SetActive(true);
+        }
+        else
+        {
+            canvaBloqueio.SetActive(false);
+        }
     }
 
     private void FillDictionaryQuestions()
@@ -167,5 +182,30 @@ public class PokemonQuizPuzzle : BasePuzzle
         yield return new WaitForSeconds(2);
         tmpCenaIncompleta.SetActive(false);
         waitCoroutine = false;
+    }
+
+    public void OnTargetFound(string target)
+    {
+        if (target == "poke1")
+        {
+            isFirstFound = true;
+        }
+        else if (target == "poke2")
+        {
+            isSecondFound = true;
+        }
+    }
+
+    public void OnTargetLost(string target)
+    {
+        if (target == "poke1")
+        {
+            isFirstFound = false;
+        }
+        else if (target == "poke2")
+        {
+            isSecondFound = false;
+        }
+
     }
 }
